@@ -14,6 +14,12 @@ import com.example.salahtracker.R
 
 object AppUtils {
 
+    const val FAZR = "Fazr"
+    const val ZUHR = "Zuhr"
+    const val ASR = "Asr"
+    const val MAGHRIB = "Maghrib"
+    const val ISHA = "Isha"
+
     fun requestExactAlarmPermission(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = context.getSystemService(AlarmManager::class.java)

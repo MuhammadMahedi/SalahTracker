@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,11 +27,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.salahtracker.domain.model.DailySalah
 import com.example.salahtracker.domain.model.PrayerStatus
+import com.example.salahtracker.ui.MainViewModel
+import com.example.salahtracker.utils.AppUtils.ASR
+import com.example.salahtracker.utils.AppUtils.FAZR
+import com.example.salahtracker.utils.AppUtils.ISHA
+import com.example.salahtracker.utils.AppUtils.MAGHRIB
+import com.example.salahtracker.utils.AppUtils.ZUHR
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(innerPadding: PaddingValues) {
+fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
     var showSheet by remember { mutableStateOf(false) }
 
     Box(
@@ -51,22 +61,16 @@ fun HomeScreen(innerPadding: PaddingValues) {
         ModalBottomSheet(
             onDismissRequest = { showSheet = false }
         ) {
-            // Bottom sheet content
-            /*Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("This is a bottom sheet", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(onClick = { showSheet = false }) {
-                    Text("Close")
-                }
-            }*/
-
-            val prayers = listOf("Fajr", "Zuhr", "Asr", "Maghrib", "Esha")
-            val statuses = remember { mutableStateMapOf<String, PrayerStatus>() }
+            val prayers = listOf(FAZR, ZUHR, ASR, MAGHRIB, ISHA )
+            val statuses = remember {
+                mutableStateMapOf(
+                    FAZR to PrayerStatus.Attend,
+                    ZUHR to PrayerStatus.Attend,
+                    ASR to PrayerStatus.Attend,
+                    MAGHRIB to PrayerStatus.Attend,
+                    ISHA to PrayerStatus.Attend
+                )
+            }
 
             LazyColumn {
                 items(prayers) { prayer ->
@@ -80,8 +84,27 @@ fun HomeScreen(innerPadding: PaddingValues) {
                 }
             }
 
+            Button(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 16.dp),
+                onClick = {
+                    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                    val dailySalah = DailySalah(date = today, fajr = statuses[FAZR]!!, zuhr = statuses[ZUHR]!!, asr = statuses[ASR]!!, maghrib = statuses[MAGHRIB]!!, isha = statuses[ISHA]!!)
+                    saveSalahStatus(viewModel,dailySalah)
+                    showSheet = false
+                }) {
+                Text("Save")
+            }
+
         }
     }
+}
+
+fun saveSalahStatus(viewModel: MainViewModel, dailySalah: DailySalah) {
+
+    viewModel.insertDay(dailySalah)
+
 }
 
 
@@ -106,7 +129,7 @@ fun SalahStatusItem(
         )
 
         // Options
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp),modifier = Modifier.weight(0.4f)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(0.4f)) {
             CheckboxWithLabel(
                 label = "Attend",
                 checked = selectedStatus == PrayerStatus.Attend,
@@ -145,14 +168,11 @@ fun CheckboxWithLabel(
 }
 
 
-
-
-
-
+/*
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    //HomeScreen(innerPadding = PaddingValues())
-    SalahStatusItem(title = "Fajr", selectedStatus = PrayerStatus.Attend, onStatusChange = {})
+    //HomeScreen(innerPadding = PaddingValues(), viewModel = hiltViewModel())
+    //SalahStatusItem(title = "Fajr", selectedStatus = PrayerStatus.Attend, onStatusChange = {})
 
-}
+}*/
