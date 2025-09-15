@@ -7,6 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.salahtracker.domain.model.DailySalah
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SalahDao {
@@ -23,6 +24,6 @@ interface SalahDao {
     suspend fun getDailySalahByDate(date: String): DailySalah?
 
     @Query("SELECT * FROM daily_salah ORDER BY date DESC")
-    suspend fun getAllDailySalah(): List<DailySalah>
+    fun getAllDailySalah(): Flow<List<DailySalah>>
 
 }

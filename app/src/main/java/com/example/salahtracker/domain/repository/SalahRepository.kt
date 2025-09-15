@@ -2,11 +2,12 @@ package com.example.salahtracker.domain.repository
 
 import com.example.salahtracker.data.local.SalahDao
 import com.example.salahtracker.domain.model.DailySalah
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class SalahRepository @Inject constructor(private val salahDao: SalahDao){
 
-    suspend fun getAllDays() : List<DailySalah> = salahDao.getAllDailySalah()
+    fun getAllDays() : Flow<List<DailySalah>> = salahDao.getAllDailySalah()
 
     suspend fun insertDay(day: DailySalah) = salahDao.insertDailySalah(day)
 

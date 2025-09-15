@@ -1,5 +1,6 @@
 package com.example.salahtracker.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +47,10 @@ import java.util.Locale
 @Composable
 fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
     var showSheet by remember { mutableStateOf(false) }
+
+    val dayList by viewModel.dayList.collectAsState()
+
+    Log.e( "HomeScreen: ",dayList.toString() )
 
     Box(
         modifier = Modifier
