@@ -17,6 +17,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -27,9 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.salahtracker.domain.model.DailySalah
 import com.example.salahtracker.domain.model.PrayerStatus
 import com.example.salahtracker.ui.MainViewModel
@@ -39,7 +38,6 @@ import com.example.salahtracker.utils.AppUtils.ISHA
 import com.example.salahtracker.utils.AppUtils.MAGHRIB
 import com.example.salahtracker.utils.AppUtils.ZUHR
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 
@@ -47,19 +45,36 @@ import java.util.Locale
 @Composable
 fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
     var showSheet by remember { mutableStateOf(false) }
-
+    val today = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
     val dayList by viewModel.dayList.collectAsState()
 
-    Log.e( "HomeScreen: ",dayList.toString() )
+    Log.e("HomeScreen: ", dayList.toString())
 
-    Box(
+    Scaffold(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Button(onClick = { showSheet = true }, modifier = Modifier.padding(16.dp)) {
-            Text("Open Bottom Sheet")
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Button(onClick = { showSheet = true }) {
+                    Text("Open Bottom Sheet")
+                }
+            }
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            items(dayList) { day ->
+                ItemDailySummery(day)
+            }
         }
     }
 
@@ -67,22 +82,34 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
         ModalBottomSheet(
             onDismissRequest = { showSheet = false }
         ) {
-            val prayers = listOf(FAZR, ZUHR, ASR, MAGHRIB, ISHA )
+            val todaySalah = dayList.find { it.date == today }
+            val prayers = listOf(FAZR, ZUHR, ASR, MAGHRIB, ISHA)
             val statuses = remember {
-                mutableStateMapOf(
-                    FAZR to PrayerStatus.Attend,
-                    ZUHR to PrayerStatus.Attend,
-                    ASR to PrayerStatus.Attend,
-                    MAGHRIB to PrayerStatus.Attend,
-                    ISHA to PrayerStatus.Attend
-                )
+                if (todaySalah != null) {
+                    mutableStateMapOf(
+                        FAZR to todaySalah.fajr,
+                        ZUHR to todaySalah.zuhr,
+                        ASR to todaySalah.asr,
+                        MAGHRIB to todaySalah.maghrib,
+                        ISHA to todaySalah.isha
+                    )
+                } else {
+                    mutableStateMapOf(
+                        FAZR to PrayerStatus.Miss,
+                        ZUHR to PrayerStatus.Miss,
+                        ASR to PrayerStatus.Miss,
+                        MAGHRIB to PrayerStatus.Miss,
+                        ISHA to PrayerStatus.Miss
+                    )
+                }
+
             }
 
             LazyColumn {
                 items(prayers) { prayer ->
-                    SalahStatusItem(
+                    SalahStatusInputItem(
                         title = prayer,
-                        selectedStatus = statuses[prayer] ?: PrayerStatus.Attend,
+                        selectedStatus = statuses[prayer] ?: PrayerStatus.Miss,
                         onStatusChange = { newStatus ->
                             statuses[prayer] = newStatus
                         }
@@ -95,9 +122,15 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
                     .align(Alignment.CenterHorizontally)
                     .padding(bottom = 16.dp),
                 onClick = {
-                    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                    val dailySalah = DailySalah(date = today, fajr = statuses[FAZR]!!, zuhr = statuses[ZUHR]!!, asr = statuses[ASR]!!, maghrib = statuses[MAGHRIB]!!, isha = statuses[ISHA]!!)
-                    saveSalahStatus(viewModel,dailySalah)
+                    val dailySalah = DailySalah(
+                        date = today,
+                        fajr = statuses[FAZR]!!,
+                        zuhr = statuses[ZUHR]!!,
+                        asr = statuses[ASR]!!,
+                        maghrib = statuses[MAGHRIB]!!,
+                        isha = statuses[ISHA]!!
+                    )
+                    saveSalahStatus(viewModel, dailySalah)
                     showSheet = false
                 }) {
                 Text("Save")
@@ -108,14 +141,12 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
 }
 
 fun saveSalahStatus(viewModel: MainViewModel, dailySalah: DailySalah) {
-
     viewModel.insertDay(dailySalah)
-
 }
 
 
 @Composable
-fun SalahStatusItem(
+fun SalahStatusInputItem(
     title: String,
     selectedStatus: PrayerStatus,
     onStatusChange: (PrayerStatus) -> Unit,
