@@ -70,7 +70,7 @@ fun ItemDailySummery(day: DailySalah) {
 @Composable
 fun SalahStatusItem(name: String, prayerStatus: PrayerStatus, modifier: Modifier = Modifier) {
     val icon: ImageVector = when (prayerStatus) {
-        PrayerStatus.Attend -> ImageVector.vectorResource(id = R.drawable.ic_done)
+        PrayerStatus.Done -> ImageVector.vectorResource(id = R.drawable.ic_done)
         PrayerStatus.Miss -> ImageVector.vectorResource(id = R.drawable.ic_miss)
         PrayerStatus.Qaza -> ImageVector.vectorResource(id = R.drawable.ic_qaza)
     }
@@ -99,10 +99,10 @@ fun ItemDailySummeryPreview() {
         DailySalah(
             "23 May 2023",
             PrayerStatus.Miss,
-            PrayerStatus.Attend,
+            PrayerStatus.Done,
             PrayerStatus.Qaza,
-            PrayerStatus.Attend,
-            PrayerStatus.Attend
+            PrayerStatus.Done,
+            PrayerStatus.Done
         )
     )
 }

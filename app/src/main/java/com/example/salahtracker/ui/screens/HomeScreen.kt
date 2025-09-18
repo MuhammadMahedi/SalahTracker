@@ -13,12 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,13 +51,12 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
 
     Scaffold(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding),
+            .fillMaxSize(),
         bottomBar = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
                 Button(onClick = { showSheet = true }) {
@@ -79,8 +77,12 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
     }
 
     if (showSheet) {
+        val sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true
+        )
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false }
+            onDismissRequest = { showSheet = false },
+            sheetState = sheetState
         ) {
             val todaySalah = dayList.find { it.date == today }
             val prayers = listOf(FAZR, ZUHR, ASR, MAGHRIB, ISHA)
@@ -143,73 +145,3 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
 fun saveSalahStatus(viewModel: MainViewModel, dailySalah: DailySalah) {
     viewModel.insertDay(dailySalah)
 }
-
-
-@Composable
-fun SalahStatusInputItem(
-    title: String,
-    selectedStatus: PrayerStatus,
-    onStatusChange: (PrayerStatus) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Prayer name
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(0.4f)
-        )
-
-        // Options
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(0.4f)) {
-            CheckboxWithLabel(
-                label = "Attend",
-                checked = selectedStatus == PrayerStatus.Attend,
-                onCheckedChange = { onStatusChange(PrayerStatus.Attend) }
-            )
-            CheckboxWithLabel(
-                label = "Qaza",
-                checked = selectedStatus == PrayerStatus.Qaza,
-                onCheckedChange = { onStatusChange(PrayerStatus.Qaza) }
-            )
-            CheckboxWithLabel(
-                label = "Miss",
-                checked = selectedStatus == PrayerStatus.Miss,
-                onCheckedChange = { onStatusChange(PrayerStatus.Miss) }
-            )
-        }
-    }
-}
-
-@Composable
-fun CheckboxWithLabel(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { onCheckedChange() }
-    ) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = { onCheckedChange() }
-        )
-        Text(text = label)
-    }
-}
-
-
-/*
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    //HomeScreen(innerPadding = PaddingValues(), viewModel = hiltViewModel())
-    //SalahStatusItem(title = "Fajr", selectedStatus = PrayerStatus.Attend, onStatusChange = {})
-
-}*/

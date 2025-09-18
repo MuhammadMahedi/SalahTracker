@@ -40,8 +40,8 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        getPermissions()
-        getExactPermission()
+       // getPermissions()
+      //  getExactPermission()
 
     }
 

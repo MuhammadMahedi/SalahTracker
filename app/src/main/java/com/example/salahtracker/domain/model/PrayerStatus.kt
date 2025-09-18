@@ -3,7 +3,7 @@ package com.example.salahtracker.domain.model
 import androidx.room.TypeConverter
 
 enum class PrayerStatus {
-    Attend,
+    Done,
     Miss,
     Qaza
 }
