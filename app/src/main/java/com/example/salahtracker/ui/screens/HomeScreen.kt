@@ -1,12 +1,8 @@
 package com.example.salahtracker.ui.screens
 
 import android.util.Log
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,8 +33,10 @@ import com.example.salahtracker.utils.AppUtils.ISHA
 import com.example.salahtracker.utils.AppUtils.MAGHRIB
 import com.example.salahtracker.utils.AppUtils.ZUHR
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,7 +130,7 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
                         maghrib = statuses[MAGHRIB]!!,
                         isha = statuses[ISHA]!!
                     )
-                    saveSalahStatus(viewModel, dailySalah)
+                    saveSalahStatus(viewModel, dailySalah,today,dayList.firstOrNull()?.date ?: today)
                     showSheet = false
                 }) {
                 Text("Save")
@@ -142,6 +140,44 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
     }
 }
 
-fun saveSalahStatus(viewModel: MainViewModel, dailySalah: DailySalah) {
-    viewModel.insertDay(dailySalah)
+
+fun saveSalahStatus(viewModel: MainViewModel, dailySalah: DailySalah, today: String, lastSavedDate: String) {
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+
+    try {
+        val todayDate = dateFormat.parse(today)
+        val lastDate = dateFormat.parse(lastSavedDate)
+
+        if (todayDate != null && lastDate != null) {
+            val diffMillis = todayDate.time - lastDate.time
+            val dayDiff = TimeUnit.MILLISECONDS.toDays(diffMillis).toInt()
+
+            Log.e("saveSalahStatus", "Day difference: $dayDiff")
+
+            when {
+                dayDiff <= 1 -> {
+                    // Insert only today
+                    viewModel.insertDay(dailySalah)
+                }
+                dayDiff > 1 -> {
+                    // Fill missing days
+                    val calendar = Calendar.getInstance()
+                    calendar.time = lastDate
+
+                    for (i in 1 until dayDiff) {
+                        calendar.add(Calendar.DAY_OF_YEAR, 1)
+                        val missingDate = dateFormat.format(calendar.time)
+                        val emptyDay = DailySalah(date = missingDate) // assuming DailySalah has a date field
+                        viewModel.insertDay(emptyDay)
+                        Log.e("saveSalahStatus", "Inserted missing day: $missingDate")
+                    }
+
+                    // Finally, insert today's Salah
+                    viewModel.insertDay(dailySalah)
+                }
+            }
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
 }
