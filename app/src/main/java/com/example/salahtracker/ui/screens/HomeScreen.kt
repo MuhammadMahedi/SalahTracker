@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -23,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.salahtracker.domain.model.DailySalah
 import com.example.salahtracker.domain.model.PrayerStatus
@@ -47,40 +50,48 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
 
     Log.e("HomeScreen: ", dayList.toString())
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize(),
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                Button(onClick = { showSheet = true }) {
-                    Text("Open Bottom Sheet")
-                }
-            }
-        }
-    ) { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+
+        // LazyColumn fills max size but leaves space at bottom for button
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(bottom = 70.dp) // adjust based on button height + margin
         ) {
             items(dayList) { day ->
                 ItemDailySummery(day)
             }
         }
+
+        // Bottom Button fixed
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Button(
+                onClick = { showSheet = true },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF2196F3), // Blue
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Open Bottom Sheet")
+            }
+        }
     }
+
 
     if (showSheet) {
         val sheetState = rememberModalBottomSheetState(
             skipPartiallyExpanded = true
         )
         ModalBottomSheet(
-            onDismissRequest = { showSheet = false },
-            sheetState = sheetState
+            onDismissRequest = { showSheet = false }, sheetState = sheetState
         ) {
             val todaySalah = dayList.find { it.date == today }
             val prayers = listOf(FAZR, ZUHR, ASR, MAGHRIB, ISHA)
@@ -112,8 +123,7 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
                         selectedStatus = statuses[prayer] ?: PrayerStatus.Miss,
                         onStatusChange = { newStatus ->
                             statuses[prayer] = newStatus
-                        }
-                    )
+                        })
                 }
             }
 
@@ -130,7 +140,9 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
                         maghrib = statuses[MAGHRIB]!!,
                         isha = statuses[ISHA]!!
                     )
-                    saveSalahStatus(viewModel, dailySalah,today,dayList.firstOrNull()?.date ?: today)
+                    saveSalahStatus(
+                        viewModel, dailySalah, today, dayList.firstOrNull()?.date ?: today
+                    )
                     showSheet = false
                 }) {
                 Text("Save")
@@ -141,7 +153,9 @@ fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
 }
 
 
-fun saveSalahStatus(viewModel: MainViewModel, dailySalah: DailySalah, today: String, lastSavedDate: String) {
+fun saveSalahStatus(
+    viewModel: MainViewModel, dailySalah: DailySalah, today: String, lastSavedDate: String
+) {
     val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
 
     try {
@@ -159,6 +173,7 @@ fun saveSalahStatus(viewModel: MainViewModel, dailySalah: DailySalah, today: Str
                     // Insert only today
                     viewModel.insertDay(dailySalah)
                 }
+
                 dayDiff > 1 -> {
                     // Fill missing days
                     val calendar = Calendar.getInstance()
@@ -167,7 +182,8 @@ fun saveSalahStatus(viewModel: MainViewModel, dailySalah: DailySalah, today: Str
                     for (i in 1 until dayDiff) {
                         calendar.add(Calendar.DAY_OF_YEAR, 1)
                         val missingDate = dateFormat.format(calendar.time)
-                        val emptyDay = DailySalah(date = missingDate) // assuming DailySalah has a date field
+                        val emptyDay =
+                            DailySalah(date = missingDate) // assuming DailySalah has a date field
                         viewModel.insertDay(emptyDay)
                         Log.e("saveSalahStatus", "Inserted missing day: $missingDate")
                     }
