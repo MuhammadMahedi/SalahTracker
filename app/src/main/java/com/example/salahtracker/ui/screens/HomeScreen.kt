@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -43,113 +44,121 @@ import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(innerPadding: PaddingValues, viewModel: MainViewModel) {
+fun HomeScreen(viewModel: MainViewModel) {
     var showSheet by remember { mutableStateOf(false) }
     val today = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
     val dayList by viewModel.dayList.collectAsState()
 
     Log.e("HomeScreen: ", dayList.toString())
 
-    Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-
-        // LazyColumn fills max size but leaves space at bottom for button
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 70.dp) // adjust based on button height + margin
-        ) {
-            items(dayList) { day ->
-                ItemDailySummery(day)
+    Scaffold(
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding(),
+                contentAlignment = Alignment.Center
+            ) {
+                Button(
+                    onClick = { showSheet = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2196F3), // Blue
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text("Open Bottom Sheet")
+                }
             }
         }
-
-        // Bottom Button fixed
+    ) { scaffoldPadding ->
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(10.dp),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(scaffoldPadding)
         ) {
-            Button(
-                onClick = { showSheet = true },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2196F3), // Blue
-                    contentColor = Color.White
-                )
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(dayList) { day ->
+                    ItemDailySummery(day)
+                }
+            }
+        }
+
+        if (showSheet) {
+            val sheetState = rememberModalBottomSheetState(
+                skipPartiallyExpanded = true
+            )
+            ModalBottomSheet(
+                onDismissRequest = { showSheet = false }, sheetState = sheetState
             ) {
-                Text("Open Bottom Sheet")
+                val todaySalah = dayList.find { it.date == today }
+                val prayers = listOf(FAZR, ZUHR, ASR, MAGHRIB, ISHA)
+                val statuses = remember {
+                    if (todaySalah != null) {
+                        mutableStateMapOf(
+                            FAZR to todaySalah.fajr,
+                            ZUHR to todaySalah.zuhr,
+                            ASR to todaySalah.asr,
+                            MAGHRIB to todaySalah.maghrib,
+                            ISHA to todaySalah.isha
+                        )
+                    } else {
+                        mutableStateMapOf(
+                            FAZR to PrayerStatus.Miss,
+                            ZUHR to PrayerStatus.Miss,
+                            ASR to PrayerStatus.Miss,
+                            MAGHRIB to PrayerStatus.Miss,
+                            ISHA to PrayerStatus.Miss
+                        )
+                    }
+
+                }
+
+                LazyColumn {
+                    items(prayers) { prayer ->
+                        SalahStatusInputItem(
+                            title = prayer,
+                            selectedStatus = statuses[prayer] ?: PrayerStatus.Miss,
+                            onStatusChange = { newStatus ->
+                                statuses[prayer] = newStatus
+                            })
+                    }
+                }
+
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2196F3), // Blue
+                        contentColor = Color.White
+                    ),
+                    onClick = {
+                        val dailySalah = DailySalah(
+                            date = today,
+                            fajr = statuses[FAZR]!!,
+                            zuhr = statuses[ZUHR]!!,
+                            asr = statuses[ASR]!!,
+                            maghrib = statuses[MAGHRIB]!!,
+                            isha = statuses[ISHA]!!
+                        )
+                        saveSalahStatus(
+                            viewModel, dailySalah, today, dayList.firstOrNull()?.date ?: today
+                        )
+                        showSheet = false
+                    }) {
+                    Text("Save")
+                }
+
             }
         }
     }
 
 
-    if (showSheet) {
-        val sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = true
-        )
-        ModalBottomSheet(
-            onDismissRequest = { showSheet = false }, sheetState = sheetState
-        ) {
-            val todaySalah = dayList.find { it.date == today }
-            val prayers = listOf(FAZR, ZUHR, ASR, MAGHRIB, ISHA)
-            val statuses = remember {
-                if (todaySalah != null) {
-                    mutableStateMapOf(
-                        FAZR to todaySalah.fajr,
-                        ZUHR to todaySalah.zuhr,
-                        ASR to todaySalah.asr,
-                        MAGHRIB to todaySalah.maghrib,
-                        ISHA to todaySalah.isha
-                    )
-                } else {
-                    mutableStateMapOf(
-                        FAZR to PrayerStatus.Miss,
-                        ZUHR to PrayerStatus.Miss,
-                        ASR to PrayerStatus.Miss,
-                        MAGHRIB to PrayerStatus.Miss,
-                        ISHA to PrayerStatus.Miss
-                    )
-                }
-
-            }
-
-            LazyColumn {
-                items(prayers) { prayer ->
-                    SalahStatusInputItem(
-                        title = prayer,
-                        selectedStatus = statuses[prayer] ?: PrayerStatus.Miss,
-                        onStatusChange = { newStatus ->
-                            statuses[prayer] = newStatus
-                        })
-                }
-            }
-
-            Button(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(bottom = 16.dp),
-                onClick = {
-                    val dailySalah = DailySalah(
-                        date = today,
-                        fajr = statuses[FAZR]!!,
-                        zuhr = statuses[ZUHR]!!,
-                        asr = statuses[ASR]!!,
-                        maghrib = statuses[MAGHRIB]!!,
-                        isha = statuses[ISHA]!!
-                    )
-                    saveSalahStatus(
-                        viewModel, dailySalah, today, dayList.firstOrNull()?.date ?: today
-                    )
-                    showSheet = false
-                }) {
-                Text("Save")
-            }
-
-        }
-    }
 }
 
 

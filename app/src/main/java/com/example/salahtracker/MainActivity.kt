@@ -33,10 +33,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             SalahTrackerTheme {
                 val viewModel: MainViewModel = hiltViewModel()
+                    HomeScreen(viewModel)
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    HomeScreen(innerPadding,viewModel)
-                }
             }
         }
 
