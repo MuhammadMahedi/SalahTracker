@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -52,7 +53,9 @@ import java.util.concurrent.TimeUnit
 fun HomeScreen(viewModel: MainViewModel) {
     var showSheet by remember { mutableStateOf(false) }
     val today = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
+
     val dayList by viewModel.dayList.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     Log.e("HomeScreen: ", dayList.toString())
 
@@ -86,7 +89,11 @@ fun HomeScreen(viewModel: MainViewModel) {
                             contentColor = Color.White
                         )
                     ) {
-                        Text("Open Bottom Sheet")
+                        if(dayList.any { it.date == today}){
+                            Text("Update Today's Prayer Status")
+                        } else{
+                            Text("Add Today's Prayer Status")
+                        }
                     }
                 }
             }
@@ -96,10 +103,24 @@ fun HomeScreen(viewModel: MainViewModel) {
                     .fillMaxSize()
                     .padding(scaffoldPadding)
             ) {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(dayList) { day ->
-                        ItemDailySummery(day)
+                // Show loader before showing data
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
+                } else {
+                    if(dayList.isEmpty()){
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Nothing added yet. Please add your today's prayer status.")
+                        }
+                    }else{
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(dayList) { day ->
+                                ItemDailySummery(day)
+                            }
+                        }
+                    }
+
                 }
             }
 
