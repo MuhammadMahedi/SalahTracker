@@ -1,5 +1,6 @@
 package com.example.salahtracker.ui.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,17 +30,18 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import com.example.salahtracker.R
 import com.example.salahtracker.domain.model.DailySalah
 import com.example.salahtracker.domain.model.PrayerStatus
+import com.example.salahtracker.ui.MainViewModel
 import com.example.salahtracker.utils.AppUtils.ASR
 import com.example.salahtracker.utils.AppUtils.FAZR
 import com.example.salahtracker.utils.AppUtils.ISHA
 import com.example.salahtracker.utils.AppUtils.MAGHRIB
 import com.example.salahtracker.utils.AppUtils.ZUHR
-
 @Composable
-fun ItemDailySummery(day: DailySalah) {
+fun ItemDailySummery(day: DailySalah,mainViewModel: MainViewModel) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -59,11 +62,11 @@ fun ItemDailySummery(day: DailySalah) {
                     modifier = Modifier.weight(2f) // 👈 gives twice the space
                 )
 
-                SalahStatusItem(FAZR, fajr, modifier = Modifier.weight(1f))
-                SalahStatusItem(ZUHR, zuhr, modifier = Modifier.weight(1f))
-                SalahStatusItem(ASR, asr, modifier = Modifier.weight(1f))
-                SalahStatusItem(MAGHRIB, maghrib, modifier = Modifier.weight(1f))
-                SalahStatusItem(ISHA, isha, modifier = Modifier.weight(1f))
+                SalahStatusItem(mainViewModel,day,FAZR, fajr, modifier = Modifier.weight(1f))
+                SalahStatusItem(mainViewModel,day,ZUHR, zuhr, modifier = Modifier.weight(1f))
+                SalahStatusItem(mainViewModel,day,ASR, asr, modifier = Modifier.weight(1f))
+                SalahStatusItem(mainViewModel,day,MAGHRIB, maghrib, modifier = Modifier.weight(1f))
+                SalahStatusItem(mainViewModel,day,ISHA, isha, modifier = Modifier.weight(1f))
             }
 
 
@@ -75,7 +78,7 @@ fun ItemDailySummery(day: DailySalah) {
 }
 
 @Composable
-fun SalahStatusItem(name: String, prayerStatus: PrayerStatus, modifier: Modifier = Modifier) {
+fun SalahStatusItem(viewModel: MainViewModel, day: DailySalah,name: String, prayerStatus: PrayerStatus, modifier: Modifier = Modifier) {
     val ctx = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
     val icon: ImageVector = when (prayerStatus) {
@@ -102,33 +105,44 @@ fun SalahStatusItem(name: String, prayerStatus: PrayerStatus, modifier: Modifier
         Text(text = name, fontSize = 10.sp)
     }
 
-    ChangeStatusDialog(showDialog = showDialog) {
+    ChangeStatusDialog(viewModel,day,showDialog = showDialog,name) {
         showDialog = false
     }
 }
 
 @Composable
-fun ChangeStatusDialog(showDialog: Boolean, onClose: () -> Unit) {
+fun ChangeStatusDialog(viewModel: MainViewModel,day: DailySalah, showDialog: Boolean, salahName: String, onClose: () -> Unit) {
     val ctx = LocalContext.current
 
     if (showDialog) {
         AlertDialog(
             onDismissRequest = onClose,
-            title = { Text("Change Status") },
-            text = { Text("Do you want to change the status from Miss to Qaza?") },
+            title = { Text("Mark as Qaza!") },
+            text = { Text("Have you completed this Qaza prayer and want to update the status from Miss to Qaza?") },
             confirmButton = {
-                TextButton(onClick = {
-                    Toast.makeText(ctx, "Status changed!", Toast.LENGTH_SHORT).show()
-                    onClose()
-                }) {
+                TextButton(
+                    onClick = {
+                        Toast.makeText(ctx, "Status changed!", Toast.LENGTH_SHORT).show()
+                        val updatedDay = setPrayerToQaza(day,salahName)
+                        Log.e( "ChangeStatusDialog: ", updatedDay.toString())
+                        viewModel.updateDay(updatedDay)
+                        onClose()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF4CAF50)) // green
+                ) {
                     Text("Yes")
                 }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    Toast.makeText(ctx, "Cancelled", Toast.LENGTH_SHORT).show()
-                    onClose()
-                }) {
+                TextButton(
+                    onClick = {
+                        Toast.makeText(ctx, "Cancelled", Toast.LENGTH_SHORT).show()
+                        onClose()
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) // disabled color
+                    )
+                ) {
                     Text("No")
                 }
             }
@@ -137,20 +151,12 @@ fun ChangeStatusDialog(showDialog: Boolean, onClose: () -> Unit) {
 }
 
 
-
-@Preview
-@Composable
-fun ItemDailySummeryPreview() {
-    ItemDailySummery(
-        DailySalah(
-            "23 May 2023",
-            PrayerStatus.Miss,
-            PrayerStatus.Done,
-            PrayerStatus.Qaza,
-            PrayerStatus.Done,
-            PrayerStatus.Done
-        )
-    )
+//update the prayerStatus to QAZA from MISS for the selected prayer
+fun setPrayerToQaza(day : DailySalah,prayerKey: String): DailySalah = when (prayerKey) {
+    FAZR -> day.copy(fajr = PrayerStatus.Qaza)
+    ZUHR -> day.copy(zuhr = PrayerStatus.Qaza)
+    ASR -> day.copy(asr = PrayerStatus.Qaza)
+    MAGHRIB -> day.copy(maghrib = PrayerStatus.Qaza)
+    ISHA -> day.copy(isha = PrayerStatus.Qaza)
+    else -> day
 }
-
-

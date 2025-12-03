@@ -116,7 +116,8 @@ fun HomeScreen(viewModel: MainViewModel) {
                     }else{
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
                             items(dayList) { day ->
-                                ItemDailySummery(day)
+                                ItemDailySummery(day,viewModel)
+                                Log.e("HomeScreen: dates",day.date )
                             }
                         }
                     }
@@ -188,7 +189,11 @@ fun HomeScreen(viewModel: MainViewModel) {
                             )
                             showSheet = false
                         }) {
-                        Text("Save")
+                        if(dayList.any { it.date == today}){
+                            Text("Update")
+                        } else {
+                            Text("Save")
+                        }
                     }
 
                 }

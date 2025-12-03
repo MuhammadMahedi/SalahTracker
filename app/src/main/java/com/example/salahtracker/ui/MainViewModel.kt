@@ -30,8 +30,8 @@ class MainViewModel @Inject constructor(private val repository: SalahRepository)
                 _dayList.value = list
 
                 if (!hasLoadedOnce) {
-                    // keep loader visible for 2 seconds so user can see it
-                    delay(1000)
+                    // keep loader visible for 0.5 seconds so user can see it
+                    delay(500)
                     _isLoading.value = false
                     hasLoadedOnce = true
                 }
