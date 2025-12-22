@@ -19,6 +19,8 @@ object AppUtils {
     const val ASR = "Asr"
     const val MAGHRIB = "Maghrib"
     const val ISHA = "Isha"
+    const val FROM_NOTIFICATION = "FromNotification"
+    const val IS_NOTIFICATION_SCHEDULED = "IsNotificationScheduled"
 
     fun requestExactAlarmPermission(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -38,12 +40,15 @@ object AppUtils {
                         }
                         dialog.dismiss()
                     }
-                    /*.setNegativeButton("Cancel") { dialog, _ ->
+                    .setNegativeButton("Not now") { dialog, _ ->
                         dialog.dismiss()
-                    }*/
+                    }
                     .show()
 
                 dialog.apply {
+
+                    getButton(AlertDialog.BUTTON_POSITIVE)
+                        ?.setTextColor(ContextCompat.getColor(context, R.color.teal_700))
 
                     getButton(AlertDialog.BUTTON_POSITIVE)
                         ?.setTextColor(ContextCompat.getColor(context, R.color.teal_700))

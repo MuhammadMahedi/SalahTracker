@@ -50,8 +50,8 @@ import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: MainViewModel) {
-    var showSheet by remember { mutableStateOf(false) }
+fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
+    var showSheet by remember { mutableStateOf(showInputDialog) }
     val today = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
 
     val dayList by viewModel.dayList.collectAsState()
@@ -90,9 +90,9 @@ fun HomeScreen(viewModel: MainViewModel) {
                         )
                     ) {
                         if(dayList.any { it.date == today}){
-                            Text("Update Today's Prayer Status")
+                            Text("Update Today's Salah Status")
                         } else{
-                            Text("Add Today's Prayer Status")
+                            Text("Add Today's Salah Status")
                         }
                     }
                 }
@@ -110,8 +110,8 @@ fun HomeScreen(viewModel: MainViewModel) {
                     }
                 } else {
                     if(dayList.isEmpty()){
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Nothing added yet. Please add your today's prayer status.")
+                        Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+                            Text("Nothing added yet. Please add your today's Salah status.")
                         }
                     }else{
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
