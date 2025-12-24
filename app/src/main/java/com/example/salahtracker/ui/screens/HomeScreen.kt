@@ -1,25 +1,42 @@
 package com.example.salahtracker.ui.screens
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,6 +50,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.commandiron.wheel_picker_compose.WheelDateTimePicker
+import com.commandiron.wheel_picker_compose.WheelTimePicker
+import com.commandiron.wheel_picker_compose.core.TimeFormat
 import com.example.salahtracker.R
 import com.example.salahtracker.domain.model.DailySalah
 import com.example.salahtracker.domain.model.PrayerStatus
@@ -43,6 +63,7 @@ import com.example.salahtracker.utils.AppUtils.ISHA
 import com.example.salahtracker.utils.AppUtils.MAGHRIB
 import com.example.salahtracker.utils.AppUtils.ZUHR
 import java.text.SimpleDateFormat
+import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -56,6 +77,17 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
 
     val dayList by viewModel.dayList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var showClockDialog by remember { mutableStateOf(false) }
+
+    val calendar = Calendar.getInstance()
+
+    var selectedHour by remember {
+        mutableStateOf(calendar.get(Calendar.HOUR_OF_DAY))
+    }
+
+    var selectedMinute by remember {
+        mutableStateOf(calendar.get(Calendar.MINUTE))
+    }
 
     Log.e("HomeScreen: ", dayList.toString())
 
@@ -71,6 +103,30 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
 
         Scaffold(
             containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Your Salah Status",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    },
+                    actions = {
+                        IconButton(onClick = { showClockDialog = true }) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_schedule),
+                                contentDescription = "Time",
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent
+                    )
+                )
+
+            },
             bottomBar = {
                 Box(
                     modifier = Modifier
@@ -198,6 +254,62 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
 
                 }
             }
+
+            if (showClockDialog) {
+                AlertDialog(
+                    onDismissRequest = { showClockDialog = false },
+
+                    title = {
+                        Text("Set time for reminders")
+                    },
+
+                    text = {
+                        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                WheelTimePicker(
+                                    timeFormat = TimeFormat.AM_PM,
+                                    startTime = LocalTime.of(selectedHour, selectedMinute),
+                                    onSnappedTime = { snappedTime ->
+                                        selectedHour = snappedTime.hour
+                                        selectedMinute = snappedTime.minute
+                                    }
+                                )
+                            } else {
+                                TimePicker(
+                                    state = rememberTimePickerState(
+                                        initialHour = selectedHour,
+                                        initialMinute = selectedMinute,
+                                        is24Hour = false
+                                    ),
+                                    modifier = Modifier.height(200.dp)
+                                )
+                            }
+                        }
+                    },
+
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                // ✅ selectedHour & selectedMinute are ALWAYS valid
+                                // 👉 schedule alarm / save to ViewModel
+                                showClockDialog = false
+                            }
+                        ) {
+                            Text("OK")
+                        }
+                    },
+
+                    dismissButton = {
+                        TextButton(onClick = { showClockDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
+
+
+
         }
 
     }

@@ -69,4 +69,6 @@ dependencies {
 
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    implementation("com.github.commandiron:WheelPickerCompose:1.1.11")
 }
