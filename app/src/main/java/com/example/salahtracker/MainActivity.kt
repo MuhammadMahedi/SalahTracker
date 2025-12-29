@@ -37,10 +37,6 @@ import java.util.Calendar
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val permissions = arrayOf(
-        Manifest.permission.POST_NOTIFICATIONS
-    )
-
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
 
@@ -113,8 +109,8 @@ class MainActivity : ComponentActivity() {
         }
 
         val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 12)
-            set(Calendar.MINUTE, 51)
+            set(Calendar.HOUR_OF_DAY, MainApp.sharedPref.getScheduledHour())
+            set(Calendar.MINUTE, MainApp.sharedPref.getScheduledMinute())
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
 
@@ -126,11 +122,6 @@ class MainActivity : ComponentActivity() {
 
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // Android 12+ exact alarm permission check
-        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
-            AppUtils.requestExactAlarmPermission(this)
-            return
-        }*/
 
         val intent = Intent(this, AlarmReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
@@ -150,24 +141,6 @@ class MainActivity : ComponentActivity() {
         )
         MainApp.sharedPref.setNotificationFlag(true)
         Log.e( "scheduleAlarm: ", "scheduled from MainActivity")
-        /*if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()){
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                calendar.timeInMillis,
-                pendingIntent
-            )
-            MainApp.sharedPref.setNotificationFlag(true)
-            Toast.makeText(this, "reminder scheduled", Toast.LENGTH_SHORT).show()
-        }else{
-            alarmManager.setRepeating(
-                AlarmManager.RTC_WAKEUP,
-                calendar.timeInMillis,
-                AlarmManager.INTERVAL_DAY,
-                pendingIntent
-            )
-            MainApp.sharedPref.setNotificationFlag(true)
-            Toast.makeText(this, "notification scheduled", Toast.LENGTH_SHORT).show()
-        }*/
 
     }
 

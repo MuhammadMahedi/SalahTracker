@@ -36,8 +36,8 @@ class MainApp :Application() {
     private fun scheduleAlarm() {
 
         val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 12)
-            set(Calendar.MINUTE, 51)
+            set(Calendar.HOUR_OF_DAY, sharedPref.getScheduledHour())
+            set(Calendar.MINUTE, sharedPref.getScheduledMinute())
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
 

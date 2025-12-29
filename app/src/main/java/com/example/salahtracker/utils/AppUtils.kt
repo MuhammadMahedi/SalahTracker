@@ -21,6 +21,8 @@ object AppUtils {
     const val ISHA = "Isha"
     const val FROM_NOTIFICATION = "FromNotification"
     const val IS_NOTIFICATION_SCHEDULED = "IsNotificationScheduled"
+    const val SCHEDULED_MINUTE = "ScheduledMinute"
+    const val SCHEDULED_HOUR = "ScheduledHour"
 
     fun requestExactAlarmPermission(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

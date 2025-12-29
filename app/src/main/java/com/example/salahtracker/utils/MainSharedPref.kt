@@ -57,6 +57,19 @@ class MainSharedPref(val context: Context) {
         return sharedPreferences.getBoolean(AppUtils.IS_NOTIFICATION_SCHEDULED, false)
     }
 
+    fun setScheduledTime(hour: Int, minute: Int) {
+        save(AppUtils.SCHEDULED_HOUR, hour)
+        save(AppUtils.SCHEDULED_MINUTE, minute)
+    }
+
+    fun getScheduledHour(): Int {
+        return sharedPreferences.getInt(AppUtils.SCHEDULED_HOUR, 22)
+    }
+
+    fun getScheduledMinute(): Int {
+        return sharedPreferences.getInt(AppUtils.SCHEDULED_MINUTE, 0)
+    }
+
 
     fun clearAllData() {
         val editor = getEditor()

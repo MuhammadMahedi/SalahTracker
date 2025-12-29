@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.os.bundleOf
 import androidx.navigation.NavDeepLinkBuilder
 import com.example.salahtracker.MainActivity
+import com.example.salahtracker.MainApp
 import com.example.salahtracker.R
 import com.example.salahtracker.utils.AppUtils.FROM_NOTIFICATION
 import java.util.Calendar
@@ -33,12 +34,10 @@ class AlarmReceiver : BroadcastReceiver() {
 
     private fun scheduleAlarmAfterReboot(context: Context) {
         // Reschedule alarm after reboot
-        val hour = 22 //MainApp.sharedPref.getHour()
-        val minute = 0 //MainApp.sharedPref.getMinutes()
 
         val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
+            set(Calendar.HOUR_OF_DAY, MainApp.sharedPref.getScheduledHour())
+            set(Calendar.MINUTE, MainApp.sharedPref.getScheduledMinute())
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
 
@@ -63,7 +62,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 calendar.timeInMillis,
                 pendingIntent
             )
-            Log.e("SalahTracker", "scheduleAlarmAfterReboot: ")
+            Log.e("SalahTracker", "scheduleAlarmAfterReboot: setExactAndAllowWhileIdle")
         }else{
             alarmManager.setRepeating(
                 AlarmManager.RTC_WAKEUP,
@@ -71,6 +70,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 AlarmManager.INTERVAL_DAY,
                 pendingIntent
             )
+            Log.e("SalahTracker", "scheduleAlarmAfterReboot: setRepeating")
         }
 
     }
@@ -117,14 +117,10 @@ class AlarmReceiver : BroadcastReceiver() {
 
         notificationManager.notify(1, notification)
 
-        // Reschedule for next day
-        val hour = 22// MainApp.sharedPref.getHour()
-        val minute = 0// MainApp.sharedPref.getMinutes()
-
         val calendar = Calendar.getInstance().apply {
             add(Calendar.DATE, 1)
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
+            set(Calendar.HOUR_OF_DAY, MainApp.sharedPref.getScheduledHour())
+            set(Calendar.MINUTE, MainApp.sharedPref.getScheduledMinute())
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
