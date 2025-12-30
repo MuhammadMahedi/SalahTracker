@@ -11,6 +11,7 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -182,10 +183,9 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                             Text("Nothing added yet. Please add your today's Salah status.")
                         }
                     }else{
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(dayList) { day ->
+                        LazyColumn(modifier = Modifier.fillMaxSize().padding(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            items(dayList,key = { it.date }) { day ->
                                 ItemDailySummery(day,viewModel)
-                                Log.e("HomeScreen: dates",day.date )
                             }
                         }
                     }

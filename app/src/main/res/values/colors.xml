@@ -12,5 +12,6 @@
     <color name="baseColor">#0F8904</color>
     <color name="cancelColor">#262525</color>
     <color name="cardBg">#F0F0F0</color>
+    <color name="borderBg">#e3e1e1</color>
 
 </resources>

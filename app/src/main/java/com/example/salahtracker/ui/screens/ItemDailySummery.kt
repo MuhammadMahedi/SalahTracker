@@ -2,6 +2,8 @@ package com.example.salahtracker.ui.screens
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +12,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -26,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,22 +52,49 @@ fun ItemDailySummery(day: DailySalah,mainViewModel: MainViewModel) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .border(width = 1.dp, color = colorResource(R.color.borderBg), shape = RoundedCornerShape(8.dp))
+            .padding(vertical = 8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
+                .padding( 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             day.apply {
 
-                Text(
-                    text = date,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.weight(2f) // 👈 gives twice the space
-                )
+                Box(
+                    modifier = Modifier
+                        .weight(2f)
+                        .background(
+                            color = colorResource(R.color.cardBg),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(horizontal = 4.dp, vertical = 10.dp)
+                ) {
+                    Text(
+                        text = date,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    )
+
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit",
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(12.dp)
+                            .background(
+                                color = colorResource(R.color.ic_launcher_background),
+                                shape = CircleShape
+                            )
+                            .padding(2.dp)
+                            .clickable { /* edit action */ }
+                    )
+                }
+
+
 
                 SalahStatusItem(mainViewModel,day,FAZR, fajr, modifier = Modifier.weight(1f))
                 SalahStatusItem(mainViewModel,day,ZUHR, zuhr, modifier = Modifier.weight(1f))
