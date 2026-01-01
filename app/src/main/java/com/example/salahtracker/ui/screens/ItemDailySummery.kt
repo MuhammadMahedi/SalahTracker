@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -71,25 +72,25 @@ fun ItemDailySummery(day: DailySalah,mainViewModel: MainViewModel) {
                             color = colorResource(R.color.cardBg),
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .padding(horizontal = 4.dp, vertical = 10.dp)
+
                 ) {
                     Text(
                         text = date,
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.align(Alignment.CenterStart)
+                        modifier = Modifier.align(Alignment.CenterStart).padding(horizontal = 4.dp, vertical = 10.dp)
                     )
 
                     Icon(
-                        imageVector = Icons.Default.Edit,
+                        painter = painterResource(R.drawable.ic_edit),
                         contentDescription = "Edit",
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .size(12.dp)
-                            .background(
+                            .size(20.dp)
+                            /*.background(
                                 color = colorResource(R.color.ic_launcher_background),
                                 shape = CircleShape
-                            )
-                            .padding(2.dp)
+                            )*/
+                            .padding(4.dp)
                             .clickable { /* edit action */ }
                     )
                 }
