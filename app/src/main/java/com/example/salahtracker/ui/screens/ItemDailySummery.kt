@@ -49,7 +49,7 @@ import com.example.salahtracker.utils.AppUtils.ISHA
 import com.example.salahtracker.utils.AppUtils.MAGHRIB
 import com.example.salahtracker.utils.AppUtils.ZUHR
 @Composable
-fun ItemDailySummery(day: DailySalah,mainViewModel: MainViewModel) {
+fun ItemDailySummery(day: DailySalah,mainViewModel: MainViewModel,onShowSheet: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -91,7 +91,7 @@ fun ItemDailySummery(day: DailySalah,mainViewModel: MainViewModel) {
                                 shape = CircleShape
                             )*/
                             .padding(4.dp)
-                            .clickable { /* edit action */ }
+                            .clickable { onShowSheet(date) }
                     )
                 }
 

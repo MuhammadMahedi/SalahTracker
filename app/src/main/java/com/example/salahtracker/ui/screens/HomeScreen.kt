@@ -82,6 +82,7 @@ import java.util.concurrent.TimeUnit
 fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
     var showSheet by remember { mutableStateOf(showInputDialog) }
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    var updateDate = today
 
     val dayList by viewModel.dayList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -183,9 +184,14 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                             Text("Nothing added yet. Please add your today's Salah status.")
                         }
                     }else{
-                        LazyColumn(modifier = Modifier.fillMaxSize().padding(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        LazyColumn(modifier = Modifier
+                            .fillMaxSize()
+                            .padding(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             items(dayList,key = { it.date }) { day ->
-                                ItemDailySummery(day,viewModel)
+                                ItemDailySummery(day,viewModel){date->
+                                    updateDate = date
+                                    showSheet = true
+                                }
                             }
                         }
                     }
@@ -200,7 +206,7 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                 ModalBottomSheet(
                     onDismissRequest = { showSheet = false }, sheetState = sheetState
                 ) {
-                    val todaySalah = dayList.find { it.date == today }
+                    val todaySalah = dayList.find { it.date == updateDate }
                     val prayers = listOf(FAZR, ZUHR, ASR, MAGHRIB, ISHA)
                     val statuses = remember {
                         if (todaySalah != null) {
@@ -245,13 +251,14 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                         ),
                         onClick = {
                             val dailySalah = DailySalah(
-                                date = today,
+                                date = updateDate,
                                 fajr = statuses[FAZR]!!,
                                 zuhr = statuses[ZUHR]!!,
                                 asr = statuses[ASR]!!,
                                 maghrib = statuses[MAGHRIB]!!,
                                 isha = statuses[ISHA]!!
                             )
+                            // TODO: Need to handle this for a random day edit
                             saveSalahStatus(
                                 viewModel, dailySalah, today, dayList.firstOrNull()?.date ?: today
                             )
