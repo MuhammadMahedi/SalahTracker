@@ -14,6 +14,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -53,7 +56,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import com.commandiron.wheel_picker_compose.WheelTimePicker
@@ -79,8 +84,9 @@ import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
+fun HomeScreen(viewModel: MainViewModel, showInputDialog: Boolean) {
     var showSheet by remember { mutableStateOf(showInputDialog) }
+    var showInfo by remember { mutableStateOf(false) }
     val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     var updateDate = today
 
@@ -123,14 +129,27 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                         )
                     },
                     actions = {
-                        //IconButton(onClick = { showClockDialog = true }) {
-                        IconButton(onClick = { showClockDialog = handleReminder(ctx)}) {
+                        IconButton(onClick = { showClockDialog = handleReminder(ctx) },
+                            modifier = Modifier.size(40.dp)) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_schedule),
+                                painter = painterResource(R.drawable.ic_yellow_notification),
                                 contentDescription = "Time",
+                                tint = Color.Unspecified,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
+
+                        IconButton(onClick = { showInfo = true },
+                            modifier = Modifier.size(40.dp)) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_info_outlined),
+                                contentDescription = "Time",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
+
+
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                         containerColor = Color.Transparent,
@@ -157,9 +176,9 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                             contentColor = Color.White
                         )
                     ) {
-                        if(dayList.any { it.date == today}){
+                        if (dayList.any { it.date == today }) {
                             Text("Update Today's Salah Status")
-                        } else{
+                        } else {
                             Text("Add Today's Salah Status")
                         }
                     }
@@ -177,18 +196,22 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                         CircularProgressIndicator()
                     }
                 } else {
-                    if(dayList.isEmpty()){
-                        Box(modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp), contentAlignment = Alignment.Center) {
+                    if (dayList.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp), contentAlignment = Alignment.Center
+                        ) {
                             Text("Nothing added yet. Please add your today's Salah status.")
                         }
-                    }else{
-                        LazyColumn(modifier = Modifier
-                            .fillMaxSize()
-                            .padding(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            items(dayList,key = { it.date }) { day ->
-                                ItemDailySummery(day,viewModel){date->
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            items(dayList, key = { it.date }) { day ->
+                                ItemDailySummery(day, viewModel) { date ->
                                     updateDate = date
                                     showSheet = true
                                 }
@@ -204,7 +227,10 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                     skipPartiallyExpanded = true
                 )
                 ModalBottomSheet(
-                    onDismissRequest = { showSheet = false }, sheetState = sheetState
+                    onDismissRequest = {
+                        showSheet = false
+                        updateDate = today
+                    }, sheetState = sheetState
                 ) {
                     val todaySalah = dayList.find { it.date == updateDate }
                     val prayers = listOf(FAZR, ZUHR, ASR, MAGHRIB, ISHA)
@@ -228,6 +254,12 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                         }
 
                     }
+
+                    Text(
+                        text = "$updateDate's Salah Status",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
 
                     LazyColumn {
                         items(prayers) { prayer ->
@@ -258,13 +290,13 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                                 maghrib = statuses[MAGHRIB]!!,
                                 isha = statuses[ISHA]!!
                             )
-                            // TODO: Need to handle this for a random day edit
                             saveSalahStatus(
                                 viewModel, dailySalah, today, dayList.firstOrNull()?.date ?: today
                             )
                             showSheet = false
+                            updateDate = today
                         }) {
-                        if(dayList.any { it.date == today}){
+                        if (dayList.any { it.date == today }) {
                             Text("Update")
                         } else {
                             Text("Save")
@@ -283,7 +315,10 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                     },
 
                     text = {
-                        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
 
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 WheelTimePicker(
@@ -326,6 +361,50 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
                 )
             }
 
+            if (showInfo) {
+                Dialog(onDismissRequest = { showInfo = false }) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        tonalElevation = 8.dp
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+
+                            Text(
+                                text = "Your Salah status indicators.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(24.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+
+                                InfoItem(
+                                    icon = R.drawable.ic_done,
+                                    label = "Attended"
+                                )
+
+                                InfoItem(
+                                    icon = R.drawable.ic_qaza,
+                                    label = "Qaza"
+                                )
+
+                                InfoItem(
+                                    icon = R.drawable.ic_miss,
+                                    label = "Missed"
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
 
 
         }
@@ -333,13 +412,15 @@ fun HomeScreen(viewModel: MainViewModel,showInputDialog : Boolean) {
     }
 
 
-
-
 }
 
 
-fun saveSalahStatus(viewModel: MainViewModel, dailySalah: DailySalah, today: String, lastSavedDate: String)
-{
+fun saveSalahStatus(
+    viewModel: MainViewModel,
+    dailySalah: DailySalah,
+    today: String,
+    lastSavedDate: String
+) {
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     try {
@@ -417,18 +498,22 @@ private fun scheduleAlarm(context: Context, selectedHour: Int, selectedMinute: I
     alarmManager.cancel(pendingIntent)
 
     MainApp.sharedPref.setNotificationFlag(true)
-    Log.e( "scheduleAlarm: ", "scheduled from HomeScreen")
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()){
+    Log.e("scheduleAlarm: ", "scheduled from HomeScreen")
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()) {
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             calendar.timeInMillis,
             pendingIntent
         )
         MainApp.sharedPref.setNotificationFlag(true)
-        MainApp.sharedPref.setScheduledTime(selectedHour,selectedMinute)
-        Toast.makeText(context, "reminder scheduled at $selectedHour:$selectedMinute", Toast.LENGTH_SHORT).show()
+        MainApp.sharedPref.setScheduledTime(selectedHour, selectedMinute)
+        Toast.makeText(
+            context,
+            "reminder scheduled at $selectedHour:$selectedMinute",
+            Toast.LENGTH_SHORT
+        ).show()
         return true
-    }else{
+    } else {
         alarmManager.setRepeating(
             AlarmManager.RTC_WAKEUP,
             calendar.timeInMillis,
@@ -436,8 +521,12 @@ private fun scheduleAlarm(context: Context, selectedHour: Int, selectedMinute: I
             pendingIntent
         )
         MainApp.sharedPref.setNotificationFlag(true)
-        MainApp.sharedPref.setScheduledTime(selectedHour,selectedMinute)
-        Toast.makeText(context, "reminder scheduled at $selectedHour:$selectedMinute", Toast.LENGTH_SHORT).show()
+        MainApp.sharedPref.setScheduledTime(selectedHour, selectedMinute)
+        Toast.makeText(
+            context,
+            "reminder scheduled at $selectedHour:$selectedMinute",
+            Toast.LENGTH_SHORT
+        ).show()
         return true
     }
 
@@ -447,21 +536,32 @@ private fun handleReminder(context: Context): Boolean {
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
         return true
-    }else{
+    } else {
         val permission = Manifest.permission.POST_NOTIFICATIONS
 
         when {
-            ActivityCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED -> {
+            ActivityCompat.checkSelfPermission(
+                context,
+                permission
+            ) == PackageManager.PERMISSION_GRANTED -> {
                 return true
             }
 
-            shouldShowRequestPermissionRationale(context as Activity,permission) -> {
-                Toast.makeText(context, "Please turn on the notification permission first", Toast.LENGTH_SHORT).show()
+            shouldShowRequestPermissionRationale(context as Activity, permission) -> {
+                Toast.makeText(
+                    context,
+                    "Please turn on the notification permission first",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return false
             }
 
             else -> {
-                Toast.makeText(context, "Please turn on the notification permission first", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "Please turn on the notification permission first",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return false
             }
         }

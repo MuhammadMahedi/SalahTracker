@@ -71,7 +71,7 @@ fun ItemDailySummery(day: DailySalah,mainViewModel: MainViewModel,onShowSheet: (
                         .background(
                             color = colorResource(R.color.cardBg),
                             shape = RoundedCornerShape(8.dp)
-                        )
+                        ).clickable { onShowSheet(date) }
 
                 ) {
                     Text(
@@ -83,6 +83,7 @@ fun ItemDailySummery(day: DailySalah,mainViewModel: MainViewModel,onShowSheet: (
                     Icon(
                         painter = painterResource(R.drawable.ic_edit),
                         contentDescription = "Edit",
+                        tint = Color.Unspecified,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .size(20.dp)
@@ -91,7 +92,7 @@ fun ItemDailySummery(day: DailySalah,mainViewModel: MainViewModel,onShowSheet: (
                                 shape = CircleShape
                             )*/
                             .padding(4.dp)
-                            .clickable { onShowSheet(date) }
+
                     )
                 }
 
